@@ -5,6 +5,8 @@ import PerformanceChart from "@/components/analytics/performance-chart";
 import TopPerformers from "@/components/analytics/top-performers";
 import { createClient } from "@/lib/supabase/server";
 import { calculatePortfolioAnalytics } from "@/lib/analytics";
+import { getDefaultCurrency } from "@/lib/settings";
+import { formatCurrency } from "@/lib/currency";
 
 export default async function AnalyticsPage() {
   const supabase = await createClient();
@@ -16,7 +18,10 @@ export default async function AnalyticsPage() {
     return <div>Please log in to view analytics.</div>;
   }
 
-  const analytics = await calculatePortfolioAnalytics(user.id);
+  const [analytics, currency] = await Promise.all([
+    calculatePortfolioAnalytics(user.id),
+    getDefaultCurrency(),
+  ]);
 
   return (
     <>
@@ -35,16 +40,17 @@ export default async function AnalyticsPage() {
             Object.values(analytics.investmentsByCategory).flat().length
           }
           categoryCount={analytics.assetAllocation.length}
+          currency={currency}
         />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <PerformanceChart data={analytics.performanceData} />
-          <PortfolioAllocationChart data={analytics.assetAllocation} />
+          <PerformanceChart data={analytics.performanceData} currency={currency} />
+          <PortfolioAllocationChart data={analytics.assetAllocation} currency={currency} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <TopPerformers performers={analytics.topPerformers} />
+            <TopPerformers performers={analytics.topPerformers} currency={currency} />
           </div>
           <div className="space-y-4">
             {analytics.assetAllocation.map((category) => (
@@ -57,7 +63,7 @@ export default async function AnalyticsPage() {
                   <div className="flex justify-between text-sm">
                     <span>Value:</span>
                     <span className="font-medium">
-                      ${category.value.toLocaleString()}
+                      {formatCurrency(category.value, currency)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">

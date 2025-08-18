@@ -15,6 +15,7 @@ import { getUserInvestmentsServer } from "@/lib/database/server";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import DeleteConfirmationDialog from "@/components/ui/delete-confirmation-dialog";
+import { formatCurrency } from "@/lib/currency";
 
 export default async function PortfolioPage() {
   const supabase = await createClient();
@@ -104,8 +105,10 @@ export default async function PortfolioPage() {
                           Initial Investment
                         </span>
                         <span className="font-semibold">
-                          ${investment.initial_amount.toLocaleString()}{" "}
-                          {investment.currency}
+                          {formatCurrency(
+                            investment.initial_amount,
+                            investment.currency
+                          )}
                         </span>
                       </div>
 
@@ -124,7 +127,10 @@ export default async function PortfolioPage() {
                           Purchase Price
                         </span>
                         <span className="font-medium">
-                          ${investment.initial_price_per_unit.toLocaleString()}
+                          {formatCurrency(
+                            investment.initial_price_per_unit,
+                            investment.currency
+                          )}
                         </span>
                       </div>
 

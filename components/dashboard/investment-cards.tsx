@@ -2,9 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
 import { getUserInvestments } from "@/lib/dashboard-data";
+import { formatCurrency } from "@/lib/currency";
+import { getDefaultCurrency } from "@/lib/settings";
 
 export default async function InvestmentCards() {
-  const investments = await getUserInvestments();
+  const [investments, currency] = await Promise.all([
+    getUserInvestments(),
+    getDefaultCurrency(),
+  ]);
 
   if (investments.length === 0) {
     return (
@@ -63,7 +68,7 @@ export default async function InvestmentCards() {
                   Current Value
                 </span>
                 <span className="font-semibold">
-                  ${(investment.current_value || 0).toLocaleString()}
+                  {formatCurrency(investment.current_value || 0, currency)}
                 </span>
               </div>
 
@@ -79,7 +84,7 @@ export default async function InvestmentCards() {
                   Current Price
                 </span>
                 <span className="font-medium">
-                  ${(investment.current_price || 0).toLocaleString()}
+                  {formatCurrency(investment.current_price || 0, currency)}
                 </span>
               </div>
 
@@ -92,8 +97,8 @@ export default async function InvestmentCards() {
                       : "text-red-600"
                   }`}
                 >
-                  {(investment.gain || 0) >= 0 ? "+" : ""}$
-                  {(investment.gain || 0).toLocaleString()}
+                  {(investment.gain || 0) >= 0 ? "+" : ""}
+                  {formatCurrency(investment.gain || 0, currency)}
                 </span>
               </div>
             </CardContent>
