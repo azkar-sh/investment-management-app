@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 export default function DashboardLayout({
   children,
@@ -18,9 +19,10 @@ export default function DashboardLayout({
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { setTheme } = useTheme();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const initialize = async () => {
       const supabase = await createClient();
       const {
         data: { user },
@@ -28,9 +30,26 @@ export default function DashboardLayout({
 
       if (!user) {
         redirect("/auth/login");
-      } else {
-        setUser(user);
+        return;
       }
+
+      setUser(user);
+
+      const { data: settings } = await supabase
+        .from("user_settings")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (settings) {
+        if (settings.theme) {
+          setTheme(settings.theme);
+        }
+        if (typeof settings.compact_mode === "boolean") {
+          document.body.classList.toggle("compact", settings.compact_mode);
+        }
+      }
+
       setLoading(false);
     };
 
@@ -42,11 +61,11 @@ export default function DashboardLayout({
       }
     };
 
-    checkAuth();
+    initialize();
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  }, [setTheme]);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);

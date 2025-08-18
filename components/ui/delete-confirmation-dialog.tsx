@@ -1,6 +1,6 @@
-// components/ui/delete-confirmation-dialog.tsx
 "use client";
 
+import type React from "react";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import {
@@ -15,33 +15,31 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { deleteInvestmentAction } from "@/lib/actions/investment-actions";
+import { cn } from "@/lib/utils";
 
 interface DeleteConfirmationDialogProps {
-  investmentId: string;
-  investmentName: string;
+  title: string;
+  description: string;
+  onConfirm: () => Promise<void>;
+  triggerClassName?: string;
+  children?: React.ReactNode;
 }
 
 export default function DeleteConfirmationDialog({
-  investmentId,
-  investmentName,
+  title,
+  description,
+  onConfirm,
+  triggerClassName,
+  children,
 }: DeleteConfirmationDialogProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const result = await deleteInvestmentAction(investmentId);
-
-      if (result.success) {
-        setIsOpen(false);
-        // Success! The page will automatically refresh due to revalidatePath
-      } else {
-        // Handle error - you might want to show a toast notification
-        console.error("Delete failed:", result.error);
-        alert("Failed to delete investment: " + result.error);
-      }
+      await onConfirm();
+      setIsOpen(false);
     } catch (error) {
       console.error("Delete error:", error);
       alert("An unexpected error occurred");
@@ -53,18 +51,22 @@ export default function DeleteConfirmationDialog({
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-destructive">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {children ? (
+          children
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("text-destructive", triggerClassName)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Investment</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete <strong>{investmentName}</strong>?
-            This will also delete all related transactions and journal entries.
-            This action cannot be undone.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
@@ -80,3 +82,4 @@ export default function DeleteConfirmationDialog({
     </AlertDialog>
   );
 }
+
