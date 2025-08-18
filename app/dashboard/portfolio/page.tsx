@@ -12,10 +12,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
 import { getUserInvestmentsServer } from "@/lib/database/server";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import DeleteConfirmationDialog from "@/components/ui/delete-confirmation-dialog";
+import { deleteInvestmentAction } from "@/lib/actions/investment-actions";
 import { formatCurrency } from "@/lib/currency";
+
 
 export default async function PortfolioPage() {
   const supabase = await createClient();
@@ -149,9 +151,16 @@ export default async function PortfolioPage() {
                     <div className="flex gap-2 pt-4 border-t">
                       <TransactionForm investment={investment} />
                       <DeleteConfirmationDialog
-                        investmentId={investment.id.toString()}
-                        investmentName={investment.name}
-                      />
+                        title="Delete Investment"
+                        description={`Are you sure you want to delete ${investment.name}? This will also delete all related transactions and journal entries. This action cannot be undone.`}
+                        onConfirm={async () => {
+                          await deleteInvestmentAction(investment.id.toString());
+                        }}
+                      >
+                        <Button variant="outline" size="sm" className="text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </DeleteConfirmationDialog>
                     </div>
                   </CardContent>
                 </Card>
