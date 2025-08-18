@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { formatCurrency, getCurrencySymbol } from "@/lib/currency"
 
 interface PerformanceData {
   date: string
@@ -13,12 +14,14 @@ interface PerformanceChartProps {
   data: PerformanceData[]
   title?: string
   description?: string
+  currency: string
 }
 
 export default function PerformanceChart({
   data,
   title = "Portfolio Performance",
   description = "Your portfolio value over time",
+  currency,
 }: PerformanceChartProps) {
   if (data.length === 0) {
     return (
@@ -59,10 +62,17 @@ export default function PerformanceChart({
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" />
-              <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+              <YAxis
+                tickFormatter={(value) =>
+                  `${getCurrencySymbol(currency)}${(Number(value) / 1000).toFixed(0)}k`
+                }
+              />
               <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`$${Number(value).toLocaleString()}`, "Portfolio Value"]}
+                formatter={(value) => [
+                  formatCurrency(Number(value), currency),
+                  "Portfolio Value",
+                ]}
               />
               <Area
                 type="monotone"

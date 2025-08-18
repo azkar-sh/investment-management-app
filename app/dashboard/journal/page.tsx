@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserJournalEntriesServer } from "@/lib/database/server";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { getDefaultCurrency } from "@/lib/settings";
 
 export default async function JournalPage() {
   const supabase = await createClient();
@@ -23,7 +24,10 @@ export default async function JournalPage() {
     return <div>Please log in to view your journal.</div>;
   }
 
-  const journalEntries = await getUserJournalEntriesServer(user.id);
+  const [journalEntries, currency] = await Promise.all([
+    getUserJournalEntriesServer(user.id),
+    getDefaultCurrency(),
+  ]);
 
   return (
     <>
@@ -77,7 +81,7 @@ export default async function JournalPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {journalEntries.map((entry) => (
-                <JournalEntryCard key={entry.id} entry={entry} />
+                <JournalEntryCard key={entry.id} entry={entry} currency={currency} />
               ))}
             </div>
           </div>

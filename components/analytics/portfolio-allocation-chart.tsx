@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts"
+import { formatCurrency } from "@/lib/currency"
 
 interface AllocationData {
   category: string
@@ -13,6 +14,7 @@ interface AllocationData {
 
 interface PortfolioAllocationChartProps {
   data: AllocationData[]
+  currency: string
 }
 
 const COLORS = [
@@ -23,7 +25,7 @@ const COLORS = [
   "hsl(var(--chart-5))",
 ]
 
-export default function PortfolioAllocationChart({ data }: PortfolioAllocationChartProps) {
+export default function PortfolioAllocationChart({ data, currency }: PortfolioAllocationChartProps) {
   if (data.length === 0) {
     return (
       <Card>
@@ -63,7 +65,7 @@ export default function PortfolioAllocationChart({ data }: PortfolioAllocationCh
               <ChartTooltip
                 content={<ChartTooltipContent />}
                 formatter={(value, name, props) => [
-                  `$${Number(value).toLocaleString()}`,
+                  formatCurrency(Number(value), currency),
                   `${props.payload.category} (${props.payload.percentage.toFixed(1)}%)`,
                 ]}
               />
@@ -80,7 +82,9 @@ export default function PortfolioAllocationChart({ data }: PortfolioAllocationCh
                 <span className="text-xs text-muted-foreground">({item.count} assets)</span>
               </div>
               <div className="text-right">
-                <div className="text-sm font-semibold">${item.value.toLocaleString()}</div>
+                <div className="text-sm font-semibold">
+                  {formatCurrency(item.value, currency)}
+                </div>
                 <div className="text-xs text-muted-foreground">{item.percentage.toFixed(1)}%</div>
               </div>
             </div>

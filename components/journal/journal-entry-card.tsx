@@ -6,12 +6,14 @@ import { ArrowUpIcon, ArrowDownIcon } from "lucide-react"
 import type { JournalEntry } from "@/lib/database"
 import DeleteConfirmationDialog from "@/components/ui/delete-confirmation-dialog"
 import { deleteJournalEntry } from "@/lib/delete-actions"
+import { formatCurrency } from "@/lib/currency"
 
 interface JournalEntryCardProps {
   entry: JournalEntry
+  currency: string
 }
 
-export default function JournalEntryCard({ entry }: JournalEntryCardProps) {
+export default function JournalEntryCard({ entry, currency }: JournalEntryCardProps) {
   const investment = entry.investments
   if (!investment) return null
 
@@ -50,18 +52,27 @@ export default function JournalEntryCard({ entry }: JournalEntryCardProps) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Current Price</p>
-            <p className="font-semibold">${entry.current_price.toLocaleString()}</p>
+            <p className="font-semibold">
+              {formatCurrency(entry.current_price, currency)}
+            </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Initial Price</p>
-            <p className="font-medium">${investment.initial_price_per_unit.toLocaleString()}</p>
+            <p className="font-medium">
+              {formatCurrency(investment.initial_price_per_unit, currency)}
+            </p>
           </div>
         </div>
 
         <div>
           <p className="text-sm text-muted-foreground">Price Change</p>
-          <p className={`font-semibold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-            {isPositive ? "+" : ""}${priceChange.toFixed(2)} ({isPositive ? "+" : ""}
+          <p
+            className={`font-semibold ${
+              isPositive ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {isPositive ? "+" : ""}
+            {formatCurrency(priceChange, currency)} ({isPositive ? "+" : ""}
             {priceChangePercent}%)
           </p>
         </div>

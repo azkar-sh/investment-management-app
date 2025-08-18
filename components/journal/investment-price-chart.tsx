@@ -4,13 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import type { JournalEntry } from "@/lib/database"
+import { formatCurrency } from "@/lib/currency"
 
 interface InvestmentPriceChartProps {
   entries: JournalEntry[]
   investmentName: string
+  currency: string
 }
 
-export default function InvestmentPriceChart({ entries, investmentName }: InvestmentPriceChartProps) {
+export default function InvestmentPriceChart({ entries, investmentName, currency }: InvestmentPriceChartProps) {
   // Sort entries by date and prepare chart data
   const chartData = entries
     .sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime())
@@ -53,10 +55,17 @@ export default function InvestmentPriceChart({ entries, investmentName }: Invest
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <XAxis dataKey="date" />
-              <YAxis tickFormatter={(value) => `$${value}`} />
+              <YAxis
+                tickFormatter={(value) =>
+                  formatCurrency(Number(value), currency)
+                }
+              />
               <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`$${Number(value).toLocaleString()}`, "Price"]}
+                formatter={(value) => [
+                  formatCurrency(Number(value), currency),
+                  "Price",
+                ]}
               />
               <Line
                 type="monotone"

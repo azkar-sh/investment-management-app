@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowUpIcon, ArrowDownIcon } from "lucide-react"
+import { formatCurrency } from "@/lib/currency"
 
 interface TopPerformer {
   name: string
@@ -11,9 +12,10 @@ interface TopPerformer {
 
 interface TopPerformersProps {
   performers: TopPerformer[]
+  currency: string
 }
 
-export default function TopPerformers({ performers }: TopPerformersProps) {
+export default function TopPerformers({ performers, currency }: TopPerformersProps) {
   if (performers.length === 0) {
     return (
       <Card>
@@ -57,7 +59,9 @@ export default function TopPerformers({ performers }: TopPerformersProps) {
                     {isPositive ? <ArrowUpIcon className="h-3 w-3 mr-1" /> : <ArrowDownIcon className="h-3 w-3 mr-1" />}
                     {Math.abs(performer.gainPercent).toFixed(2)}%
                   </Badge>
-                  <p className="text-sm text-muted-foreground">${performer.currentValue.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatCurrency(performer.currentValue, currency)}
+                  </p>
                 </div>
               </div>
             )
