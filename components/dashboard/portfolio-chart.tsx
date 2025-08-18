@@ -3,12 +3,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { formatCurrency, getCurrencySymbol } from "@/lib/currency"
 
 interface PortfolioChartProps {
   data: Array<{ date: string; value: number }>
+  currency: string
 }
 
-export default function PortfolioChart({ data }: PortfolioChartProps) {
+export default function PortfolioChart({ data, currency }: PortfolioChartProps) {
   const chartData =
     data && data.length > 0
       ? data
@@ -40,10 +42,17 @@ export default function PortfolioChart({ data }: PortfolioChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <XAxis dataKey="date" />
-              <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+              <YAxis
+                tickFormatter={(value) =>
+                  `${getCurrencySymbol(currency)}${(Number(value) / 1000).toFixed(0)}k`
+                }
+              />
               <ChartTooltip
                 content={<ChartTooltipContent />}
-                formatter={(value) => [`$${Number(value).toLocaleString()}`, "Portfolio Value"]}
+                formatter={(value) => [
+                  formatCurrency(Number(value), currency),
+                  "Portfolio Value",
+                ]}
               />
               <Line
                 type="monotone"

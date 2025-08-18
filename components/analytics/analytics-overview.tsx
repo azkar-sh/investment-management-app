@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, TrendingDown, DollarSign, Target, BarChart3, PieChart } from "lucide-react"
+import { formatCurrency } from "@/lib/currency"
 
 interface AnalyticsOverviewProps {
   totalValue: number
@@ -8,6 +9,7 @@ interface AnalyticsOverviewProps {
   totalGainPercent: number
   assetCount: number
   categoryCount: number
+  currency: string
 }
 
 export default function AnalyticsOverview({
@@ -17,6 +19,7 @@ export default function AnalyticsOverview({
   totalGainPercent,
   assetCount,
   categoryCount,
+  currency,
 }: AnalyticsOverviewProps) {
   const isPositiveGain = totalGain >= 0
 
@@ -28,7 +31,9 @@ export default function AnalyticsOverview({
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(totalValue, currency)}
+          </div>
           <p className="text-xs text-muted-foreground">Current market value</p>
         </CardContent>
       </Card>
@@ -43,8 +48,13 @@ export default function AnalyticsOverview({
           )}
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${isPositiveGain ? "text-green-600" : "text-red-600"}`}>
-            {isPositiveGain ? "+" : ""}${totalGain.toLocaleString()}
+          <div
+            className={`text-2xl font-bold ${
+              isPositiveGain ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {isPositiveGain ? "+" : ""}
+            {formatCurrency(totalGain, currency)}
           </div>
           <p className="text-xs text-muted-foreground">
             {isPositiveGain ? "+" : ""}
@@ -59,7 +69,9 @@ export default function AnalyticsOverview({
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">${totalInvested.toLocaleString()}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(totalInvested, currency)}
+          </div>
           <p className="text-xs text-muted-foreground">Principal investment</p>
         </CardContent>
       </Card>

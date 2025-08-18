@@ -4,9 +4,13 @@ import InvestmentCards from "@/components/dashboard/investment-cards";
 import PortfolioChart from "@/components/dashboard/portfolio-chart";
 import AddInvestmentModal from "@/components/investment/add-investment-modal";
 import { getPortfolioChartData } from "@/lib/dashboard-data";
+import { getDefaultCurrency } from "@/lib/settings";
 
 export default async function DashboardPage() {
-  const chartData = await getPortfolioChartData();
+  const [chartData, currency] = await Promise.all([
+    getPortfolioChartData(),
+    getDefaultCurrency(),
+  ]);
 
   return (
     <>
@@ -22,7 +26,7 @@ export default async function DashboardPage() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <PortfolioChart data={chartData} />
+            <PortfolioChart data={chartData} currency={currency} />
           </div>
           <div className="space-y-6">
             <InvestmentCards />
