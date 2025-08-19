@@ -15,6 +15,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { createInvestment } from "@/lib/investment-actions";
 import type { InvestmentType } from "@/lib/database";
+import { toast } from "@/hooks/use-toast";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -49,8 +50,16 @@ export default function AddInvestmentForm({
   const [state, formAction] = useActionState(createInvestment, null);
 
   useEffect(() => {
-    if (state?.success && onSuccess) {
-      onSuccess();
+    if (state?.success) {
+      toast({ title: "Investment created", description: state.success });
+      if (onSuccess) onSuccess();
+    }
+    if (state?.error) {
+      toast({
+        title: "Error",
+        description: state.error,
+        variant: "destructive",
+      });
     }
   }, [state, onSuccess]);
 

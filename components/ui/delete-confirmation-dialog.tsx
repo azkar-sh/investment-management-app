@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface DeleteConfirmationDialogProps {
   title: string;
@@ -39,10 +40,15 @@ export default function DeleteConfirmationDialog({
     setIsDeleting(true);
     try {
       await onConfirm();
+      toast({ title: "Deleted", description: "Item has been removed" });
       setIsOpen(false);
     } catch (error) {
       console.error("Delete error:", error);
-      alert("An unexpected error occurred");
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     } finally {
       setIsDeleting(false);
     }

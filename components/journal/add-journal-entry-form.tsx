@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2 } from "lucide-react"
 import { createJournalEntry } from "@/lib/journal-actions"
 import type { Investment } from "@/lib/database"
+import { toast } from "@/hooks/use-toast"
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -36,6 +37,15 @@ interface AddJournalEntryFormProps {
 export default function AddJournalEntryForm({ investments }: AddJournalEntryFormProps) {
   const [state, formAction] = useActionState(createJournalEntry, null)
 
+  useEffect(() => {
+    if (state?.success) {
+      toast({ title: "Journal entry added", description: state.success })
+    }
+    if (state?.error) {
+      toast({ title: "Error", description: state.error, variant: "destructive" })
+    }
+  }, [state])
+
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
@@ -44,17 +54,6 @@ export default function AddJournalEntryForm({ investments }: AddJournalEntryForm
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-6">
-          {state?.error && (
-            <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-md text-sm">
-              {state.error}
-            </div>
-          )}
-
-          {state?.success && (
-            <div className="bg-green-500/10 border border-green-500/50 text-green-700 dark:text-green-400 px-4 py-3 rounded-md text-sm">
-              {state.success}
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label htmlFor="investmentId">Investment *</Label>
