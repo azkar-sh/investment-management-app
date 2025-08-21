@@ -1,25 +1,31 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowUpIcon, ArrowDownIcon } from "lucide-react"
-import type { JournalEntry } from "@/lib/database"
-import DeleteConfirmationDialog from "@/components/ui/delete-confirmation-dialog"
-import { deleteJournalEntry } from "@/lib/delete-actions"
-import { formatCurrency } from "@/lib/currency"
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+import type { JournalEntry } from "@/lib/database/client";
+import DeleteConfirmationDialog from "@/components/ui/delete-confirmation-dialog";
+import { deleteJournalEntry } from "@/lib/delete-actions";
+import { formatCurrency } from "@/lib/currency";
 
 interface JournalEntryCardProps {
-  entry: JournalEntry
-  currency: string
+  entry: JournalEntry;
+  currency: string;
 }
 
-export default function JournalEntryCard({ entry, currency }: JournalEntryCardProps) {
-  const investment = entry.investments
-  if (!investment) return null
+export default function JournalEntryCard({
+  entry,
+  currency,
+}: JournalEntryCardProps) {
+  const investment = entry.investments;
+  if (!investment) return null;
 
-  const priceChange = entry.current_price - investment.initial_price_per_unit
-  const priceChangePercent = ((priceChange / investment.initial_price_per_unit) * 100).toFixed(2)
-  const isPositive = priceChange >= 0
+  const priceChange = entry.current_price - investment.initial_price_per_unit;
+  const priceChangePercent = (
+    (priceChange / investment.initial_price_per_unit) *
+    100
+  ).toFixed(2);
+  const isPositive = priceChange >= 0;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -34,14 +40,18 @@ export default function JournalEntryCard({ entry, currency }: JournalEntryCardPr
           </div>
           <div className="flex items-center space-x-2">
             <Badge variant={isPositive ? "default" : "destructive"}>
-              {isPositive ? <ArrowUpIcon className="h-3 w-3 mr-1" /> : <ArrowDownIcon className="h-3 w-3 mr-1" />}
+              {isPositive ? (
+                <ArrowUpIcon className="h-3 w-3 mr-1" />
+              ) : (
+                <ArrowDownIcon className="h-3 w-3 mr-1" />
+              )}
               {Math.abs(Number.parseFloat(priceChangePercent))}%
             </Badge>
             <DeleteConfirmationDialog
               title="Delete Journal Entry"
               description={`Are you sure you want to delete this journal entry for ${investment.name}? This action cannot be undone.`}
               onConfirm={async () => {
-                await deleteJournalEntry(entry.id)
+                await deleteJournalEntry(entry.id as unknown as string);
               }}
               triggerClassName="text-destructive hover:text-destructive"
             />
@@ -85,5 +95,5 @@ export default function JournalEntryCard({ entry, currency }: JournalEntryCardPr
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

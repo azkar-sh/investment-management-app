@@ -18,7 +18,6 @@ import DeleteConfirmationDialog from "@/components/ui/delete-confirmation-dialog
 import { deleteInvestmentAction } from "@/lib/actions/investment-actions";
 import { formatCurrency } from "@/lib/currency";
 
-
 export default async function PortfolioPage() {
   const supabase = await createClient();
   const {
@@ -153,11 +152,13 @@ export default async function PortfolioPage() {
                       <DeleteConfirmationDialog
                         title="Delete Investment"
                         description={`Are you sure you want to delete ${investment.name}? This will also delete all related transactions and journal entries. This action cannot be undone.`}
-                        onConfirm={async () => {
-                          await deleteInvestmentAction(investment.id.toString());
-                        }}
+                        investmentId={investment.id.toString()}
                       >
-                        <Button variant="outline" size="sm" className="text-destructive">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </DeleteConfirmationDialog>

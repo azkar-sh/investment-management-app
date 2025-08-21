@@ -17,11 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { deleteInvestmentAction } from "@/lib/actions/investment-actions";
 
 interface DeleteConfirmationDialogProps {
   title: string;
   description: string;
-  onConfirm: () => Promise<void>;
+  investmentId?: string; // New prop for investment ID
+  onConfirm?: () => Promise<void>; // Keep this optional for backward compatibility
   triggerClassName?: string;
   children?: React.ReactNode;
 }
@@ -29,6 +31,7 @@ interface DeleteConfirmationDialogProps {
 export default function DeleteConfirmationDialog({
   title,
   description,
+  investmentId,
   onConfirm,
   triggerClassName,
   children,
@@ -39,14 +42,30 @@ export default function DeleteConfirmationDialog({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await onConfirm();
-      toast({ title: "Deleted", description: "Item has been removed" });
+      if (investmentId) {
+        // Use the server action directly
+        const result = await deleteInvestmentAction(investmentId);
+        if (!result.success) {
+          throw new Error(result.error || "Failed to delete investment");
+        }
+      } else if (onConfirm) {
+        // Fallback to onConfirm for backward compatibility
+        await onConfirm();
+      }
+
+      toast({
+        title: "Deleted",
+        description: "Investment has been removed successfully",
+      });
       setIsOpen(false);
     } catch (error) {
       console.error("Delete error:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -88,4 +107,3 @@ export default function DeleteConfirmationDialog({
     </AlertDialog>
   );
 }
-
