@@ -9,9 +9,7 @@ export async function createInvestment(prevState: any, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { error: "User not authenticated" };
-  }
+  if (!user) return { error: "User not authenticated" };
 
   const name = formData.get("name");
   const symbol = formData.get("symbol");
@@ -31,31 +29,54 @@ export async function createInvestment(prevState: any, formData: FormData) {
     return { error: "All required fields must be filled" };
   }
 
-  const amount = Number.parseFloat(initialAmount.toString());
-  const quantity = Number.parseFloat(initialQuantity.toString());
+  const amount = Number(initialAmount);
+  const quantity = Number(initialQuantity);
   const pricePerUnit = amount / quantity;
 
   try {
-    const { error } = await supabase.from("investments").insert({
-      user_id: user.id,
-      investment_type_id: Number.parseInt(investmentTypeId.toString()),
-      name: name.toString(),
-      symbol: symbol?.toString() || null,
-      initial_amount: amount,
-      initial_quantity: quantity,
-      initial_price_per_unit: pricePerUnit,
-      currency: currency.toString(),
-      purchase_date: purchaseDate.toString(),
-    });
+    // 1️⃣ Insert ke investments dan ambil id
+    const { data: investmentData, error: investmentError } = await supabase
+      .from("investments")
+      .insert({
+        user_id: user.id,
+        investment_type_id: Number(investmentTypeId),
+        name: name.toString(),
+        symbol: symbol?.toString() || null,
+        initial_amount: amount,
+        initial_quantity: quantity,
+        initial_price_per_unit: pricePerUnit,
+        currency: currency.toString(),
+        purchase_date: purchaseDate.toString(),
+      })
+      .select("id") // ambil id investasi
+      .single();
 
-    if (error) {
-      console.error("Database error:", error);
+    if (investmentError) {
+      console.error("Database error:", investmentError);
       return { error: "Failed to create investment" };
+    }
+
+    // 2️⃣ Insert transaksi pertama (initial buy)
+    const { error: transactionError } = await supabase
+      .from("transactions")
+      .insert({
+        investment_id: investmentData.id,
+        transaction_type: "buy",
+        quantity: quantity,
+        price_per_unit: pricePerUnit,
+        total_amount: amount,
+        transaction_date: purchaseDate.toString(),
+        notes: "Initial purchase",
+      });
+
+    if (transactionError) {
+      console.error("Transaction insert error:", transactionError);
+      return { error: "Investment created but failed to log transaction" };
     }
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolio");
-    return { success: "Investment created successfully" };
+    return { success: "Investment and transaction created successfully" };
   } catch (error) {
     console.error("Error creating investment:", error);
     return { error: "An unexpected error occurred" };

@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { TrendingUp, Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import { TrendingUp, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import Link from "next/link";
 
 export default function Navigation() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -33,7 +33,10 @@ export default function Navigation() {
               <Button variant="ghost" asChild>
                 <Link href="/auth/login">Sign In</Link>
               </Button>
-              <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button
+                asChild
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
                 <Link href="/auth/register">Get Started</Link>
               </Button>
             </div>
@@ -41,5 +44,5 @@ export default function Navigation() {
         </div>
       </div>
     </nav>
-  )
+  );
 }

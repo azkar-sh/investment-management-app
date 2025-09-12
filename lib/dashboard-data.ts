@@ -33,9 +33,6 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  console.log("[v0] Portfolio Summary - Investments fetched:", investments);
-  console.log("[v0] Portfolio Summary - Investments error:", investmentsError);
-
   if (investmentsError) {
     console.error("Error fetching investments:", investmentsError);
     return {
@@ -49,7 +46,6 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
   }
 
   if (!investments?.length) {
-    console.log("[v0] Portfolio Summary - No investments found");
     return {
       totalValue: 0,
       totalGain: 0,
@@ -65,8 +61,6 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
 
   // Get latest journal entries for each investment
   for (const investment of investments) {
-    console.log("[v0] Processing investment:", investment);
-
     const { data: latestEntry } = await supabase
       .from("journal_entries")
       .select("current_price")
@@ -74,13 +68,6 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
-
-    console.log(
-      "[v0] Latest journal entry for",
-      investment.name,
-      ":",
-      latestEntry
-    );
 
     const purchasePrice = Number(investment.initial_price_per_unit) || 0;
     const quantity = Number(investment.initial_quantity) || 0;
@@ -91,15 +78,6 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
     const invested = purchasePrice * quantity;
     const currentValue = currentPrice * quantity;
 
-    console.log("[v0] Investment calculations:", {
-      name: investment.name,
-      purchasePrice,
-      quantity,
-      currentPrice,
-      invested,
-      currentValue,
-    });
-
     totalInvested += invested;
     totalValue += currentValue;
   }
@@ -107,13 +85,6 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
   const totalGain = totalValue - totalInvested;
   const totalGainPercent =
     totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
-
-  console.log("[v0] Portfolio Summary final calculations:", {
-    totalValue,
-    totalGain,
-    totalGainPercent,
-    totalInvested,
-  });
 
   return {
     totalValue,
@@ -133,24 +104,18 @@ export async function getUserInvestments(): Promise<InvestmentWithValue[]> {
     .select(`*, investment_types (name, category, unit_type)`)
     .order("created_at", { ascending: false });
 
-  console.log("[v0] User Investments - Raw data:", investments);
-  console.log("[v0] User Investments - Error:", error);
-
   if (error) {
     console.error("Error fetching investments:", error);
     return [];
   }
 
   if (!investments?.length) {
-    console.log("[v0] User Investments - No investments found");
     return [];
   }
 
   const investmentsWithValues: InvestmentWithValue[] = [];
 
   for (const investment of investments) {
-    console.log("[v0] Processing user investment:", investment);
-
     const { data: latestEntry } = await supabase
       .from("journal_entries")
       .select("current_price")
@@ -158,13 +123,6 @@ export async function getUserInvestments(): Promise<InvestmentWithValue[]> {
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
-
-    console.log(
-      "[v0] Latest entry for user investment",
-      investment.name,
-      ":",
-      latestEntry
-    );
 
     const purchasePrice = Number(investment.initial_price_per_unit) || 0;
     const quantity = Number(investment.initial_quantity) || 0;
@@ -176,17 +134,6 @@ export async function getUserInvestments(): Promise<InvestmentWithValue[]> {
     const investedValue = purchasePrice * quantity;
     const gain = currentValue - investedValue;
     const gainPercent = investedValue > 0 ? (gain / investedValue) * 100 : 0;
-
-    console.log("[v0] User investment calculations:", {
-      name: investment.name,
-      purchasePrice,
-      quantity,
-      currentPrice,
-      currentValue,
-      investedValue,
-      gain,
-      gainPercent,
-    });
 
     investmentsWithValues.push({
       id: investment.id,
@@ -204,7 +151,6 @@ export async function getUserInvestments(): Promise<InvestmentWithValue[]> {
     });
   }
 
-  console.log("[v0] Final investments with values:", investmentsWithValues);
   return investmentsWithValues;
 }
 

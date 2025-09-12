@@ -44,13 +44,22 @@ export default async function AnalyticsPage() {
         />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <PerformanceChart data={analytics.performanceData} currency={currency} />
-          <PortfolioAllocationChart data={analytics.assetAllocation} currency={currency} />
+          <PerformanceChart
+            data={analytics.performanceData}
+            currency={currency}
+          />
+          <PortfolioAllocationChart
+            data={analytics.assetAllocation}
+            currency={currency}
+          />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <TopPerformers performers={analytics.topPerformers} currency={currency} />
+            <TopPerformers
+              performers={analytics.topPerformers}
+              currency={currency}
+            />
           </div>
           <div className="space-y-4">
             {analytics.assetAllocation.map((category) => (

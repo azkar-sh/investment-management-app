@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { createInvestment } from "@/lib/investment-actions";
-import type { InvestmentType } from "@/lib/database";
+import type { InvestmentType } from "@/lib/database/client";
 import { toast } from "@/hooks/use-toast";
 
 function SubmitButton() {
