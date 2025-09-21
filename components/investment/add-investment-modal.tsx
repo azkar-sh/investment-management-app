@@ -46,7 +46,7 @@ export default function AddInvestmentModal({
           Add Investment
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Investment</DialogTitle>
         </DialogHeader>

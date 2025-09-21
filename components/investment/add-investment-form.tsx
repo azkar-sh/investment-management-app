@@ -64,7 +64,7 @@ export default function AddInvestmentForm({
   }, [state, onSuccess]);
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="mx-auto w-full">
       <form action={formAction} className="space-y-6">
         {state?.error && (
           <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-md text-sm">
@@ -80,7 +80,7 @@ export default function AddInvestmentForm({
               name="name"
               placeholder="e.g., Apple Inc., Gold, Bitcoin"
               required
-              className="bg-background"
+              className="bg-accent/5 w-full"
             />
           </div>
 
@@ -90,7 +90,7 @@ export default function AddInvestmentForm({
               id="symbol"
               name="symbol"
               placeholder="e.g., AAPL, XAU, BTC"
-              className="bg-background"
+              className="bg-accent/5 w-full"
             />
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function AddInvestmentForm({
         <div className="space-y-2">
           <Label htmlFor="investmentTypeId">Investment Type *</Label>
           <Select name="investmentTypeId" required>
-            <SelectTrigger className="bg-background">
+            <SelectTrigger className="bg-accent/5 w-full">
               <SelectValue placeholder="Select investment type" />
             </SelectTrigger>
             <SelectContent>
@@ -122,7 +122,7 @@ export default function AddInvestmentForm({
               min="0"
               placeholder="1000.00"
               required
-              className="bg-background"
+              className="bg-accent/5 w-full"
             />
           </div>
 
@@ -136,14 +136,14 @@ export default function AddInvestmentForm({
               min="0"
               placeholder="10"
               required
-              className="bg-background"
+              className="bg-accent/5 w-full"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="currency">Currency</Label>
             <Select name="currency" defaultValue="USD">
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className="bg-accent/5 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -164,7 +164,7 @@ export default function AddInvestmentForm({
             name="purchaseDate"
             type="date"
             required
-            className="bg-background"
+            className="bg-accent/5 w-full"
           />
         </div>
 

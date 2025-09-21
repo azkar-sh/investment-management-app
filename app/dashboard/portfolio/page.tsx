@@ -19,6 +19,7 @@ import { deleteInvestmentAction } from "@/lib/actions/investment-actions";
 import { formatCurrency } from "@/lib/currency";
 import { safeFormatCurrency, safeFormatDate, safeText } from "@/lib/format";
 import InvestmentCard from "@/components/investment/investmentCard";
+import AddInvestmentModal from "@/components/investment/add-investment-modal";
 
 export default async function PortfolioPage() {
   const supabase = await createClient();
@@ -42,10 +43,7 @@ export default async function PortfolioPage() {
           asChild
           className="bg-accent hover:bg-accent/90 text-accent-foreground"
         >
-          <Link href="/dashboard/add-investment">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Investment
-          </Link>
+          <AddInvestmentModal />
         </Button>
       </DashboardHeader>
 

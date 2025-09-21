@@ -24,7 +24,7 @@ export default async function DashboardPage() {
       <div className="flex-1 overflow-auto p-6 space-y-6">
         <PortfolioOverview />
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-3">
           <div className="lg:col-span-2">
             <PortfolioChart data={chartData} currency={currency} />
           </div>
