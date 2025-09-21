@@ -1,5 +1,5 @@
+// app/dashboard/profile/page.tsx
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,12 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/server";
-import { updateProfile } from "@/lib/profile-actions";
-import { Save, User } from "lucide-react";
+import { User } from "lucide-react";
+import ProfileForm from "./components/ProfileForm";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -24,7 +21,6 @@ export default async function ProfilePage() {
     return <div>Please log in to view your profile.</div>;
   }
 
-  // Get user profile data
   const { data: profile } = await supabase
     .from("user_profiles")
     .select("*")
@@ -51,62 +47,15 @@ export default async function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form action={updateProfile} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      defaultValue={profile?.first_name || ""}
-                      placeholder="Enter your first name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      defaultValue={profile?.last_name || ""}
-                      placeholder="Enter your last name"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    defaultValue={user.email || ""}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email cannot be changed. Contact support if you need to
-                    update your email.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    name="bio"
-                    defaultValue={profile?.bio || ""}
-                    placeholder="Tell us about yourself and your investment goals..."
-                    rows={4}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </Button>
-              </form>
+              <ProfileForm
+                initial={{
+                  full_name: profile?.full_name ?? "",
+                  first_name: profile?.first_name ?? "",
+                  last_name: profile?.last_name ?? "",
+                  bio: profile?.bio ?? "",
+                  email: user.email ?? "",
+                }}
+              />
             </CardContent>
           </Card>
 
@@ -120,7 +69,7 @@ export default async function ProfilePage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Member Since</Label>
+                  <p className="text-sm font-medium">Member Since</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(user.created_at).toLocaleDateString("en-US", {
                       year: "numeric",
@@ -130,13 +79,13 @@ export default async function ProfilePage() {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Account Status</Label>
+                  <p className="text-sm font-medium">Account Status</p>
                   <p className="text-sm text-green-600 font-medium">Active</p>
                 </div>
               </div>
 
               <div>
-                <Label className="text-sm font-medium">User ID</Label>
+                <p className="text-sm font-medium">User ID</p>
                 <p className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded">
                   {user.id}
                 </p>

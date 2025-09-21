@@ -6,37 +6,44 @@ import { redirect } from "next/navigation";
 
 export type SettingsState = { success?: boolean; error?: string };
 
-export async function updateProfile(formData: FormData) {
-  const supabase = await createClient();
+export type ProfileState = {
+  success?: boolean;
+  error?: string;
+};
 
+export async function updateProfile(
+  _prev: ProfileState,
+  formData: FormData
+): Promise<ProfileState> {
+  const supabase = await createClient();
   const {
     data: { user },
+    error: authErr,
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/auth/login");
+  if (authErr || !user) return { error: "Not authenticated" };
+
+  try {
+    const firstName = (formData.get("firstName") as string)?.trim() ?? "";
+    const lastName = (formData.get("lastName") as string)?.trim() ?? "";
+    const bio = (formData.get("bio") as string)?.trim() ?? "";
+
+    const { error } = await supabase.from("user_profiles").upsert({
+      id: user.id,
+      first_name: firstName,
+      last_name: lastName,
+      bio,
+      updated_at: new Date().toISOString(),
+    });
+
+    if (error) return { error: "Failed to update profile" };
+
+    revalidatePath("/dashboard/profile"); // sesuaikan route kamu
+    return { success: true };
+  } catch (e) {
+    console.error(e);
+    return { error: "Unexpected error" };
   }
-
-  const firstName = formData.get("firstName") as string;
-  const lastName = formData.get("lastName") as string;
-  const bio = formData.get("bio") as string;
-
-  const { error } = await supabase.from("user_profiles").upsert({
-    id: user.id,
-    first_name: firstName,
-    last_name: lastName,
-    full_name: `${firstName} ${lastName}`.trim(),
-    bio: bio,
-    updated_at: new Date().toISOString(),
-  });
-
-  if (error) {
-    console.error("Profile update error:", error);
-    throw new Error("Failed to update profile");
-  }
-
-  revalidatePath("/dashboard/profile");
-  return { success: true };
 }
 
 export async function updateSettings(
