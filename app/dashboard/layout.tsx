@@ -2,13 +2,15 @@
 
 import type React from "react";
 import { createClient } from "@/lib/supabase/client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/dashboard/sidebar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
+
+const THEME_STORAGE_KEY = "investtracker-theme"; // samakan dengan ThemeProvider
 
 export default function DashboardLayout({
   children,
@@ -19,7 +21,12 @@ export default function DashboardLayout({
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { setTheme } = useTheme();
+
+  const router = useRouter();
+  const { setTheme, resolvedTheme } = useTheme();
+
+  // pastikan bootstrap theme dari DB hanya sekali
+  const didBootstrapThemeRef = useRef(false);
 
   useEffect(() => {
     const initialize = async () => {
@@ -29,7 +36,8 @@ export default function DashboardLayout({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        redirect("/auth/login");
+        // di client, pakai push, bukan redirect()
+        router.replace("/auth/login");
         return;
       }
 
@@ -41,10 +49,21 @@ export default function DashboardLayout({
         .eq("id", user.id)
         .single();
 
-      if (settings) {
-        if (settings.theme) {
-          setTheme(settings.theme);
+      // === BOOTSTRAP THEME DARI DB (HANYA JIKA BELUM ADA DI STORAGE) ===
+      if (settings && !didBootstrapThemeRef.current) {
+        try {
+          const stored = localStorage.getItem(THEME_STORAGE_KEY);
+          // hanya apply dari DB kalau storage belum punya preferensi (first run / fresh browser)
+          if (!stored && settings.theme) {
+            setTheme(settings.theme as "light" | "dark" | "system");
+          }
+        } catch {
+          // no-op
+        } finally {
+          didBootstrapThemeRef.current = true;
         }
+
+        // compact mode: boleh langsung diterapkan (ini bukan urusan next-themes)
         if (typeof settings.compact_mode === "boolean") {
           document.body.classList.toggle("compact", settings.compact_mode);
         }
@@ -56,25 +75,21 @@ export default function DashboardLayout({
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile) {
-        setIsCollapsed(true); // Start collapsed on mobile
-      }
+      if (mobile) setIsCollapsed(true);
     };
 
     initialize();
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, [setTheme]);
+  }, [router, setTheme]);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const toggleSidebar = () => setIsCollapsed((v) => !v);
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
       </div>
     );
   }
@@ -101,7 +116,7 @@ export default function DashboardLayout({
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="font-serif font-semibold">InvestTracker</h1>
-            <div className="w-9" /> {/* Spacer for centering */}
+            <div className="w-9" />
           </div>
         )}
 
