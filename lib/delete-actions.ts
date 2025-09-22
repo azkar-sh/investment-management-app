@@ -52,7 +52,7 @@ export async function deleteInvestment(investmentId: string) {
   }
 
   // Revalidate all related pages
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/analytics");
   revalidatePath("/dashboard/portfolio");
   revalidatePath("/dashboard/analytics");
 }
@@ -80,7 +80,7 @@ export async function deleteJournalEntry(entryId: string) {
   }
 
   // Revalidate all related pages
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/analytics");
   revalidatePath("/dashboard/journal");
   revalidatePath("/dashboard/analytics");
 }

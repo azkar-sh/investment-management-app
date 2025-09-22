@@ -43,7 +43,7 @@ export default async function AnalyticsPage() {
           currency={currency}
         />
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-2">
           <PerformanceChart
             data={analytics.performanceData}
             currency={currency}

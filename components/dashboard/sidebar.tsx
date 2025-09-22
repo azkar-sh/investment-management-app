@@ -21,11 +21,10 @@ import { signOut } from "@/lib/actions";
 import { useState, useEffect } from "react";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Dashboard", href: "/dashboard/analytics", icon: Home },
   { name: "Portfolio", href: "/dashboard/portfolio", icon: Wallet },
-  // { name: "Add Investment", href: "/dashboard/add-investment", icon: PlusCircle },
   { name: "Journal", href: "/dashboard/journal", icon: BookOpen },
-  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  // { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { name: "Profile", href: "/dashboard/profile", icon: User },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
@@ -70,7 +69,10 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         {/* Header */}
         <div className="flex h-16 items-center border-b px-3">
           {!isCollapsed ? (
-            <Link href="/dashboard" className="flex items-center space-x-2">
+            <Link
+              href="/dashboard/analytics"
+              className="flex items-center space-x-2"
+            >
               <TrendingUp className="h-8 w-8 text-accent flex-shrink-0" />
               <span className="text-xl font-serif font-bold transition-opacity duration-300">
                 InvestTracker

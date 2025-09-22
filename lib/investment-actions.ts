@@ -74,7 +74,7 @@ export async function createInvestment(prevState: any, formData: FormData) {
       return { error: "Investment created but failed to log transaction" };
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/analytics");
     revalidatePath("/dashboard/portfolio");
     return { success: "Investment and transaction created successfully" };
   } catch (error) {
@@ -130,7 +130,7 @@ export async function addTransaction(prevState: any, formData: FormData) {
       return { error: "Failed to add transaction" };
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/analytics");
     revalidatePath("/dashboard/portfolio");
     return { success: "Transaction added successfully" };
   } catch (error) {
@@ -167,7 +167,7 @@ export async function deleteInvestment(investmentId: number) {
       throw new Error("Failed to delete investment");
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/analytics");
     revalidatePath("/dashboard/portfolio");
   } catch (error) {
     console.error("Error deleting investment:", error);
