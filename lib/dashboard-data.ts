@@ -154,9 +154,9 @@ export async function getUserInvestments(): Promise<InvestmentWithValue[]> {
   return investmentsWithValues;
 }
 
-export async function getPortfolioChartData(): Promise<
-  { date: string; value: number }[]
-> {
+export type PortfolioChartPoint = { date: string; value: number };
+
+export async function getPortfolioChartData(): Promise<PortfolioChartPoint[]> {
   const supabase = await createClient();
 
   const { data: entries, error } = await supabase

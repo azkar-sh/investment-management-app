@@ -13,6 +13,8 @@ import { PlusCircle } from "lucide-react";
 import AddInvestmentForm from "./add-investment-form";
 import { getInvestmentTypes } from "@/lib/database/client";
 import type { InvestmentType } from "@/lib/database/client";
+import { useDashboardStore } from "@/stores/dashboard-store";
+import { toast } from "@/hooks/use-toast";
 
 interface AddInvestmentModalProps {
   onSuccess?: () => void;
@@ -23,6 +25,7 @@ export default function AddInvestmentModal({
 }: AddInvestmentModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [investmentTypes, setInvestmentTypes] = useState<InvestmentType[]>([]);
+  const refreshDashboard = useDashboardStore((state) => state.refresh);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,12 +33,22 @@ export default function AddInvestmentModal({
     }
   }, [isOpen]);
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
     setIsOpen(false);
     if (onSuccess) {
       onSuccess();
     }
-    window.location.reload();
+    try {
+      await refreshDashboard();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not update dashboard.";
+      toast({
+        title: "Refresh failed",
+        description: message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

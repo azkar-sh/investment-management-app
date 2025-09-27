@@ -65,6 +65,8 @@ export async function signUp(prevState: any, formData: FormData) {
       },
     });
 
+    console.log(data);
+
     if (error) {
       return { error: error.message };
     }

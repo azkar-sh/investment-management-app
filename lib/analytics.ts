@@ -1,3 +1,6 @@
+// lib/analytics.ts
+"use server";
+
 import { createClient } from "@/lib/supabase/server";
 import type { Investment, InvestmentType } from "@/lib/database/client";
 
@@ -30,20 +33,20 @@ export async function calculatePortfolioAnalytics(
 ): Promise<PortfolioAnalytics> {
   const supabase = await createClient();
 
-  // 1) Ambil investments (id, meta)
+  // 1) Investments (meta)
   const { data: investments, error: invErr } = await supabase
     .from("investments")
     .select(
       `
-    id,
-    name,
-    symbol,
-    currency,
-    initial_price_per_unit,
-    initial_quantity,
-    purchase_date,
-    investment_types:investment_types!investment_type_id ( name, category, unit_type )
-  `
+      id,
+      name,
+      symbol,
+      currency,
+      initial_price_per_unit,
+      initial_quantity,
+      purchase_date,
+      investment_types:investment_types!investment_type_id ( name, category, unit_type )
+    `
     )
     .eq("user_id", userId);
 
@@ -54,7 +57,7 @@ export async function calculatePortfolioAnalytics(
 
   const ids = investments.map((i) => i.id);
 
-  // 2) Ambil semua transactions untuk ids tsb
+  // 2) Transactions for those investments
   const { data: txs, error: txErr } = await supabase
     .from("transactions")
     .select(
@@ -64,7 +67,7 @@ export async function calculatePortfolioAnalytics(
 
   if (txErr) console.error("tx fetch error", txErr);
 
-  // Reduce transaksi → holdings & cost basis per investment
+  // Aggregate for current snapshot (qty, cost basis, last tx date)
   type Agg = { qty: number; amt: number; last: string | null };
   const aggByInv = new Map<number, Agg>();
 
@@ -74,10 +77,10 @@ export async function calculatePortfolioAnalytics(
     const q = Number(tx.quantity ?? 0);
     const a = Number(tx.total_amount ?? 0);
 
-    if (tx.transaction_type === "buy") {
+    if ((tx.transaction_type as string) === "buy") {
       rec.qty += q;
       rec.amt += a;
-    } else if (tx.transaction_type === "sell") {
+    } else if ((tx.transaction_type as string) === "sell") {
       rec.qty -= q;
       rec.amt -= a;
     }
@@ -86,39 +89,45 @@ export async function calculatePortfolioAnalytics(
     aggByInv.set(key, rec);
   }
 
-  // 3) Ambil journal_entries terbaru per investment (manual price)
+  // 3) ALL journals (ASC) for historical pricing
   const { data: journals, error: jErr } = await supabase
     .from("journal_entries")
     .select("investment_id, entry_date, current_price")
     .in("investment_id", ids)
-    .order("entry_date", { ascending: false });
+    .order("entry_date", { ascending: true });
 
   if (jErr) console.error("journal fetch error", jErr);
 
-  // Pilih yang terbaru per investment
-  const lastJournalPrice = new Map<number, { date: string; price: number }>();
+  // Map journals per investment
+  const journalByInv = new Map<number, Array<{ date: Date; price: number }>>();
   for (const j of journals ?? []) {
     const id = j.investment_id as number;
-    if (!lastJournalPrice.has(id)) {
-      lastJournalPrice.set(id, {
-        date: j.entry_date as string,
-        price: Number(j.current_price ?? 0),
-      });
-    }
+    const arr = journalByInv.get(id) ?? [];
+    arr.push({
+      date: new Date(j.entry_date as string),
+      price: Number(j.current_price ?? 0),
+    });
+    journalByInv.set(id, arr);
   }
 
-  // 4) Bentuk “investmentsWithCurrentValue”
+  // 4) Enrich investments with current snapshot (price/value/gain)
   const investmentsWithCurrentValue = investments.map((inv) => {
     const agg = aggByInv.get(inv.id) ?? { qty: 0, amt: 0, last: null };
     const qtyNow = agg.qty; // totalQuantity
     const costBasis = agg.amt; // netInvested (buy−sell)
     const avgCost =
-      qtyNow !== 0 ? costBasis / qtyNow : inv.initial_price_per_unit;
+      qtyNow !== 0 ? costBasis / qtyNow : Number(inv.initial_price_per_unit);
 
-    // harga sekarang prioritas: journal.latest → avgCost → initialPrice
-    const j = lastJournalPrice.get(inv.id);
+    // current price priority: latest journal -> avgCost -> initial
+    let latestPrice: number | undefined = undefined;
+    const jArr = journalByInv.get(inv.id) ?? [];
+    if (jArr.length) {
+      const last = jArr[jArr.length - 1];
+      latestPrice = last.price > 0 ? last.price : undefined;
+    }
+
     const currentPrice =
-      (j?.price && j.price > 0 ? j.price : undefined) ??
+      latestPrice ??
       (avgCost && avgCost > 0 ? avgCost : undefined) ??
       Number(inv.initial_price_per_unit ?? 0);
 
@@ -139,16 +148,13 @@ export async function calculatePortfolioAnalytics(
       currentValue,
       gain,
       gainPercent,
-      lastJournalDate: j?.date ?? null,
     };
   });
 
-  // 5) Ringkasan portofolio
+  // 5) Portfolio summary
   const totalValue = sum(
     investmentsWithCurrentValue.map((i) => i.currentValue)
   );
-  // “Total Invested” → cost basis agregat; kalau banyak jualan, bisa negatif.
-  // Jika mau “capital deployed only”, gunakan sum(max(netInvested, 0)).
   const totalInvested = sum(
     investmentsWithCurrentValue.map((i) => i.totals.netInvested)
   );
@@ -158,7 +164,7 @@ export async function calculatePortfolioAnalytics(
       ? (totalGain / Math.max(0, totalInvested)) * 100
       : 0;
 
-  // 6) Asset allocation by category (berdasarkan nilai pasar sekarang)
+  // 6) Allocation by category (by current market value)
   const categoryMap = new Map<string, { value: number; count: number }>();
   const investmentsByCategory: Record<string, any[]> = {};
 
@@ -184,13 +190,69 @@ export async function calculatePortfolioAnalytics(
     })
   );
 
-  // 7) Performance timeline (pakai generator lamamu)
-  const performanceData = generatePerformanceTimeline(
-    Math.max(0, totalInvested),
-    totalValue
-  );
+  // 7) REAL monthly performance from tx + journal (LOCF)
+  // Build transaction map (sorted)
+  const txByInv = new Map<
+    number,
+    Array<{ date: Date; type: "buy" | "sell"; qty: number; amt: number }>
+  >();
+  for (const t of txs ?? []) {
+    const id = t.investment_id as number;
+    const arr = txByInv.get(id) ?? [];
+    arr.push({
+      date: new Date(t.transaction_date as string),
+      type: t.transaction_type as "buy" | "sell",
+      qty: Number(t.quantity ?? 0),
+      amt: Number(t.total_amount ?? 0),
+    });
+    txByInv.set(id, arr);
+  }
+  for (const [id, arr] of txByInv) {
+    arr.sort((a, b) => a.date.getTime() - b.date.getTime());
+  }
 
-  // 8) Top performers (qty > 0 saja biar relevan)
+  const months = lastNMonthsEnds(12); // 13 points
+  const monthlyValues: number[] = new Array(months.length).fill(0);
+
+  for (const inv of investments) {
+    const id = inv.id as number;
+
+    const txsInv = txByInv.get(id) ?? [];
+    let runningQty = 0;
+    let txIdx = 0;
+
+    const js = journalByInv.get(id) ?? [];
+    let runningPrice: number | null = null;
+    let jIdx = 0;
+
+    const fallbackPrice = Number(inv.initial_price_per_unit ?? 0) || 0; // fallback if no journal yet
+
+    months.forEach((monthEnd, mi) => {
+      // apply tx up to monthEnd
+      while (txIdx < txsInv.length && txsInv[txIdx].date <= monthEnd) {
+        const t = txsInv[txIdx++];
+        runningQty += t.type === "buy" ? t.qty : -t.qty;
+      }
+
+      // advance journal to monthEnd (LOCF)
+      while (jIdx < js.length && js[jIdx].date <= monthEnd) {
+        const p = js[jIdx++].price;
+        if (p > 0) runningPrice = p;
+      }
+
+      const price =
+        (runningPrice ?? fallbackPrice) > 0 ? runningPrice ?? fallbackPrice : 0;
+      const value = Math.max(0, runningQty) * price;
+      monthlyValues[mi] += value;
+    });
+  }
+
+  const performanceData = months.map((d, i) => ({
+    date: fmtMMMYYYY(d),
+    value: Math.round(monthlyValues[i]),
+  }));
+
+  // 8) Top performers (qty > 0)
   const topPerformers = investmentsWithCurrentValue
     .filter((i) => i.totals.totalQuantity > 0)
     .sort((a, b) => b.gainPercent - a.gainPercent)
@@ -214,38 +276,32 @@ export async function calculatePortfolioAnalytics(
   };
 }
 
-// helper kecil
+/* -------------------- Helpers -------------------- */
+
 function sum(arr: number[]) {
   return arr.reduce((s, n) => s + (Number.isFinite(n) ? Number(n) : 0), 0);
 }
 
-function generatePerformanceTimeline(
-  initialValue: number,
-  currentValue: number
-) {
-  const months = 12;
-  const data = [];
-  const growth = currentValue / initialValue;
+function endOfMonth(d: Date) {
+  const e = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  e.setHours(23, 59, 59, 999);
+  return e;
+}
 
-  for (let i = 0; i <= months; i++) {
-    const progress = i / months;
-    // Add some volatility to make it more realistic
-    const volatility = 0.95 + Math.random() * 0.1;
-    const value = initialValue * (1 + (growth - 1) * progress) * volatility;
-
-    const date = new Date();
-    date.setMonth(date.getMonth() - (months - i));
-
-    data.push({
-      date: date.toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      }),
-      value: Math.round(value),
-    });
+/** Last n months including current month end, returned ascending */
+function lastNMonthsEnds(n = 12): Date[] {
+  const arr: Date[] = [];
+  const now = new Date();
+  for (let i = n; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+    d.setHours(23, 59, 59, 999);
+    arr.push(d);
   }
+  return arr;
+}
 
-  return data;
+function fmtMMMYYYY(d: Date) {
+  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
 function getEmptyAnalytics(): PortfolioAnalytics {

@@ -1,19 +1,51 @@
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import PortfolioOverview from "@/components/dashboard/portfolio-overview";
+import DashboardInitializer from "@/components/dashboard/dashboard-initializer";
+import DashboardPortfolioChart from "@/components/dashboard/dashboard-portfolio-chart";
 import InvestmentCards from "@/components/dashboard/investment-cards";
-import PortfolioChart from "@/components/dashboard/portfolio-chart";
+import PortfolioOverview from "@/components/dashboard/portfolio-overview";
 import AddInvestmentModal from "@/components/investment/add-investment-modal";
-import { getPortfolioChartData } from "@/lib/dashboard-data";
-import { getDefaultCurrency } from "@/lib/settings";
+import { getDashboardData } from "@/lib/dashboard-service";
+
+const EMPTY_SUMMARY = {
+  totalValue: 0,
+  totalGain: 0,
+  totalGainPercent: 0,
+  totalInvested: 0,
+  todayChange: 0,
+  todayChangePercent: 0,
+};
+
+const EMPTY_ANALYTICS = {
+  totalValue: 0,
+  totalInvested: 0,
+  totalGain: 0,
+  totalGainPercent: 0,
+  assetAllocation: [],
+  performanceData: [],
+  topPerformers: [],
+  investmentsByCategory: {},
+};
 
 export default async function DashboardPage() {
-  const [chartData, currency] = await Promise.all([
-    getPortfolioChartData(),
-    getDefaultCurrency(),
-  ]);
+  let data;
+
+  try {
+    data = await getDashboardData();
+  } catch (error) {
+    console.error("Failed to load dashboard data", error);
+    data = {
+      portfolioSummary: EMPTY_SUMMARY,
+      investments: [],
+      chartData: [],
+      currency: "USD",
+      analytics: EMPTY_ANALYTICS,
+    };
+  }
 
   return (
     <>
+      <DashboardInitializer {...data} />
+
       <DashboardHeader
         title="Dashboard"
         description="Welcome back! Here's your portfolio overview."
@@ -26,7 +58,7 @@ export default async function DashboardPage() {
 
         <div className="grid gap-6 xl:grid-cols-3">
           <div className="lg:col-span-2">
-            <PortfolioChart data={chartData} currency={currency} />
+            <DashboardPortfolioChart />
           </div>
           <div className="space-y-6">
             <InvestmentCards />

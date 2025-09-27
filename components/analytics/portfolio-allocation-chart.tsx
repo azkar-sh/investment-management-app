@@ -1,31 +1,44 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts"
-import { formatCurrency } from "@/lib/currency"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import { formatCurrency } from "@/lib/currency";
 
 interface AllocationData {
-  category: string
-  value: number
-  percentage: number
-  count: number
+  category: string;
+  value: number;
+  percentage: number;
+  count: number;
 }
 
 interface PortfolioAllocationChartProps {
-  data: AllocationData[]
-  currency: string
+  data: AllocationData[];
+  currency: string;
 }
 
 const COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-]
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
-export default function PortfolioAllocationChart({ data, currency }: PortfolioAllocationChartProps) {
+export default function PortfolioAllocationChart({
+  data,
+  currency,
+}: PortfolioAllocationChartProps) {
   if (data.length === 0) {
     return (
       <Card>
@@ -37,36 +50,52 @@ export default function PortfolioAllocationChart({ data, currency }: PortfolioAl
           Add investments to see allocation
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Portfolio Allocation</CardTitle>
-        <CardDescription>Distribution of your investments by asset category</CardDescription>
+        <CardDescription>
+          Distribution of your investments by asset category
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer
           config={{
             value: {
               label: "Value",
+              color: "var(--chart-1)",
             },
           }}
-          className="h-[300px]"
+          style={{ ["--color-value" as any]: "var(--chart-1)" }}
         >
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" aspect={2}>
             <PieChart>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={120} paddingAngle={2} dataKey="value">
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius="35%"
+                outerRadius="80%"
+                paddingAngle={2}
+                dataKey="value"
+              >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <ChartTooltip
                 content={<ChartTooltipContent />}
                 formatter={(value, name, props) => [
                   formatCurrency(Number(value), currency),
-                  `${props.payload.category} (${props.payload.percentage.toFixed(1)}%)`,
+                  `${
+                    props.payload.category
+                  } (${props.payload.percentage.toFixed(1)}%)`,
                 ]}
               />
             </PieChart>
@@ -75,22 +104,32 @@ export default function PortfolioAllocationChart({ data, currency }: PortfolioAl
 
         <div className="mt-6 space-y-2">
           {data.map((item, index) => (
-            <div key={item.category} className="flex items-center justify-between">
+            <div
+              key={item.category}
+              className="flex items-center justify-between"
+            >
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                />
                 <span className="text-sm font-medium">{item.category}</span>
-                <span className="text-xs text-muted-foreground">({item.count} assets)</span>
+                <span className="text-xs text-muted-foreground">
+                  ({item.count} assets)
+                </span>
               </div>
               <div className="text-right">
                 <div className="text-sm font-semibold">
                   {formatCurrency(item.value, currency)}
                 </div>
-                <div className="text-xs text-muted-foreground">{item.percentage.toFixed(1)}%</div>
+                <div className="text-xs text-muted-foreground">
+                  {item.percentage.toFixed(1)}%
+                </div>
               </div>
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

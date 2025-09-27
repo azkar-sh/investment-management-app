@@ -1,37 +1,30 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  DollarSign,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
-import { getPortfolioSummary } from "@/lib/dashboard-data";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/currency";
-import { getDefaultCurrency } from "@/lib/settings";
-import { calculatePortfolioAnalytics } from "@/lib/analytics";
-import { createClient } from "@/lib/supabase/server";
+import { useDashboardStore } from "@/stores/dashboard-store";
+import { DollarSign, TrendingUp, Wallet } from "lucide-react";
 
-export default async function PortfolioOverview() {
-  const supabase = await createClient();
+export default function PortfolioOverview() {
+  const { analytics, summary, currency, loading } = useDashboardStore((state) => ({
+    analytics: state.analytics,
+    summary: state.portfolioSummary,
+    currency: state.currency,
+    loading: state.loading && !state.initialized,
+  }));
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return <div>Please log in to view analytics.</div>;
+  if (loading || !analytics || !summary) {
+    return <PortfolioOverviewSkeleton />;
   }
 
-  const [portfolioData, currency2] = await Promise.all([
-    getPortfolioSummary(),
-    getDefaultCurrency(),
-  ]);
-
-  const [analytics, currency] = await Promise.all([
-    calculatePortfolioAnalytics(user.id),
-    getDefaultCurrency(),
-  ]);
+  const totalGainIsPositive = analytics.totalGain >= 0;
+  const todayChangePercent = summary.todayChangePercent ?? 0;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -47,8 +40,8 @@ export default async function PortfolioOverview() {
             {formatCurrency(analytics.totalValue, currency)}
           </div>
           <p className="text-xs text-muted-foreground">
-            {portfolioData.todayChangePercent > 0 ? "+" : ""}
-            {portfolioData.todayChangePercent.toFixed(2)}% from yesterday
+            {todayChangePercent > 0 ? "+" : ""}
+            {todayChangePercent.toFixed(2)}% from yesterday
           </p>
         </CardContent>
       </Card>
@@ -61,10 +54,10 @@ export default async function PortfolioOverview() {
         <CardContent>
           <div
             className={`text-2xl font-bold ${
-              analytics.totalGain >= 0 ? "text-green-600" : "text-red-600"
+              totalGainIsPositive ? "text-green-600" : "text-red-600"
             }`}
           >
-            {analytics.totalGain >= 0 ? "+" : ""}
+            {totalGainIsPositive ? "+" : ""}
             {formatCurrency(analytics.totalGain, currency)}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -88,6 +81,25 @@ export default async function PortfolioOverview() {
           </p>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function PortfolioOverviewSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {[0, 1, 2].map((key) => (
+        <Card key={key}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-4 rounded-full" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-3 w-24" />
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

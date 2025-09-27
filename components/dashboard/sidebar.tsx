@@ -80,7 +80,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             </Link>
           ) : (
             <div className="flex items-center justify-center w-full">
-              <TrendingUp className="h-8 w-8 text-accent" />
+              {/* <TrendingUp className="h-8 w-8 text-accent" /> */}
             </div>
           )}
 
@@ -90,10 +90,10 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               variant="ghost"
               size="sm"
               onClick={onToggle}
-              className="ml-auto p-1 h-8 w-8"
+              className="absolute right-4 top-4 h-8 w-8"
             >
               {isCollapsed ? (
-                <Menu className="h-4 w-4" />
+                <TrendingUp className="h-8 w-8 text-accent" />
               ) : (
                 <X className="h-4 w-4" />
               )}
@@ -102,7 +102,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-2 py-6">
+        <nav className="flex-1 space-y-4 px-3 py-6">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (

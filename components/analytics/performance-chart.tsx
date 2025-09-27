@@ -1,20 +1,30 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { formatCurrency, getCurrencySymbol } from "@/lib/currency"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { formatCurrency, getCurrencySymbol } from "@/lib/currency";
 
 interface PerformanceData {
-  date: string
-  value: number
+  date: string;
+  value: number;
 }
 
 interface PerformanceChartProps {
-  data: PerformanceData[]
-  title?: string
-  description?: string
-  currency: string
+  data: PerformanceData[];
+  title?: string;
+  description?: string;
+  currency: string;
 }
 
 export default function PerformanceChart({
@@ -34,7 +44,7 @@ export default function PerformanceChart({
           No performance data available
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -48,23 +58,38 @@ export default function PerformanceChart({
           config={{
             value: {
               label: "Portfolio Value",
-              color: "hsl(var(--chart-1))",
+              color: "var(--chart-1)",
             },
           }}
-          className="h-[300px]"
+          style={{ ["--color-value" as any]: "var(--chart-1)" }}
         >
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" aspect={2}>
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-value)"
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-value)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" />
               <YAxis
+                domain={[
+                  (dataMin: number) => Math.floor(dataMin * 0.98),
+                  (dataMax: number) => Math.ceil(dataMax * 1.02),
+                ]}
+                tickCount={5}
                 tickFormatter={(value) =>
-                  `${getCurrencySymbol(currency)}${(Number(value) / 1000).toFixed(0)}k`
+                  `${getCurrencySymbol(currency)}${(
+                    Number(value) / 1000
+                  ).toFixed(0)}k`
                 }
               />
               <ChartTooltip
@@ -78,14 +103,16 @@ export default function PerformanceChart({
                 type="monotone"
                 dataKey="value"
                 stroke="var(--color-value)"
+                strokeOpacity={0.9}
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorValue)"
+                baseValue="dataMin"
               />
             </AreaChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

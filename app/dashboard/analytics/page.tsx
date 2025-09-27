@@ -23,6 +23,8 @@ export default async function AnalyticsPage() {
     getDefaultCurrency(),
   ]);
 
+  console.log(analytics);
+
   return (
     <>
       <DashboardHeader
