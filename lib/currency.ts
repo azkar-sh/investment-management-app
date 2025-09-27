@@ -14,4 +14,3 @@ export function formatCurrency(value: number, currency: string) {
   const symbol = getCurrencySymbol(currency);
   return `${symbol}${value.toLocaleString()}`;
 }
-

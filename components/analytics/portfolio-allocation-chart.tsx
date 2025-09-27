@@ -113,14 +113,19 @@ export default function PortfolioAllocationChart({
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
-                <span className="text-sm font-medium">{item.category}</span>
+                <span className="text-sm font-medium">
+                  {item.category
+                    .split(" ")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ")}
+                </span>
                 <span className="text-xs text-muted-foreground">
                   ({item.count} assets)
                 </span>
               </div>
               <div className="text-right">
                 <div className="text-sm font-semibold">
-                  {formatCurrency(item.value, currency)}
+                  {formatCurrency(Number(item.value.toFixed(2)), currency)}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {item.percentage.toFixed(1)}%

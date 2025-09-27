@@ -23,8 +23,6 @@ export default async function AnalyticsPage() {
     getDefaultCurrency(),
   ]);
 
-  console.log(analytics);
-
   return (
     <>
       <DashboardHeader
@@ -34,9 +32,16 @@ export default async function AnalyticsPage() {
 
       <div className="flex-1 overflow-auto p-6 space-y-6">
         <AnalyticsOverview
-          totalValue={analytics.totalValue}
-          totalInvested={analytics.totalInvested}
-          totalGain={analytics.totalGain}
+          totalValue={
+            analytics.totalValue && Number(analytics.totalValue.toFixed(2))
+          }
+          totalInvested={
+            analytics.totalInvested &&
+            Number(analytics.totalInvested.toFixed(2))
+          }
+          totalGain={
+            analytics.totalGain && Number(analytics.totalGain.toFixed(2))
+          }
           totalGainPercent={analytics.totalGainPercent}
           assetCount={
             Object.values(analytics.investmentsByCategory).flat().length

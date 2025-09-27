@@ -158,6 +158,7 @@ export async function calculatePortfolioAnalytics(
   const totalInvested = sum(
     investmentsWithCurrentValue.map((i) => i.totals.netInvested)
   );
+
   const totalGain = totalValue - Math.max(0, totalInvested);
   const totalGainPercent =
     Math.max(0, totalInvested) > 0
